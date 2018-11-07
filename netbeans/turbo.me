@@ -4,7 +4,9 @@
 # Licensed under the Apache License, Version 2.0
 # http://www.apache.org/licenses/LICENSE-2.0
 
-requires privilege:admin
+###################################
+# Meta tags
+###################################
 
 meta title="netbeans"
 meta namespace="oracle"
@@ -33,43 +35,44 @@ using turbo/turboscript-tools:2016.3.17
 # Download and install
 ###################################
 
-cmd "mkdir @SYSDRIVE@\Workspace"
+# Set working directory
+cmd mkdir @SYSDRIVE@\Workspace
 workdir @SYSDRIVE@\Workspace
-
-# Setup batch script to kill nbi-cleaner process after install if it hangs
-# NOTE: https://netbeans.org/bugzilla/show_bug.cgi?id=192129
-batch
-  echo @echo off > kill.bat
-  echo if "%%2"=="" (set t=5) else (set t=%%2) >> kill.bat
-  echo tasklist /fi "imagename eq %%1" ^| findstr : ^> nul >> kill.bat
-  echo if errorlevel 1 (for /f "tokens=2 delims=," %%%%i in ('tasklist /nh /fi "imagename eq %%1" /fo csv') do taskkill /f /pid %%%%~i ^> nul ^&^& goto end) >> kill.bat
-  echo @timeout /t %%t%% /nobreak ^> nul >> kill.bat
-  echo %%~n0 %%1 %%t%% >> kill.bat
-  echo :end >> kill.bat
 
 # Get the latest version tag
 batch
  echo import sys > getTag.py
  echo import requests >> getTag.py
  echo import re >> getTag.py
- echo host = "https://netbeans.org/downloads/start.html?platform=windows&lang=en&option=" >> getTag.py
+ echo host = "https://netbeans.org/downloads/" >> getTag.py
  echo headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'} >> getTag.py
  echo r = requests.get(host , headers=headers, timeout=10) >> getTag.py
  echo print(re.findall('download\/(\d+\.\d+[\d\.]*)', r.text )[0])  >> getTag.py
 
 cmd python getTag.py
 var tag = last
+meta tag = tag
+
 var url = "http://download.netbeans.org/netbeans/" + tag + "/final/bundles/netbeans-" + tag + postfix + "-windows.exe"
 
-# Download and install the latest version
+# Download and install NetBeans
 batch
-  echo Downloading %bundle% bundle from %url%...
-  wget -q -O install.exe --no-check-certificate --no-verbose "%url%"
-  start /b cmd /c kill.bat nbi-cleaner* 30
-  echo Installing...
+  @ECHO Downloading %bundle% bundle from %url%...
+  wget -q -O install.exe --no-check-certificate --no-verbose --quiet "%url%"
+
+  @ECHO Installing NetBeans...
   install.exe --silent
 
-# Set startup file
+###################################
+# VM Settings
+###################################
+
+enable MergeStartupDir
+
+###################################
+# Startup File
+###################################
+
 startup file ("@PROGRAMFILESX86@\NetBeans " + tag + "\bin\netbeans.exe")
 
 ###################################
@@ -81,5 +84,3 @@ cmd powershell -NoProfile -ExecutionPolicy Unrestricted -Command "Import-Module 
 workdir c:\
 cmd rmdir c:\Workspace /s /q
 cmd rmdir c:\TurboBuildTools /s /q
-
-meta tag=tag
