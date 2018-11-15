@@ -7,4 +7,4 @@ This code was not actually downloading NetBeans to the VM. This issue was fixed 
 
 To build: 
 
-    spoon build /path/to/turbo.me
+    turbo build /path/to/turbo.me
