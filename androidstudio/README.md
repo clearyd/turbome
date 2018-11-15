@@ -1,5 +1,5 @@
 Project website: https://developer.android.com/studio/
 
-To build:
+To build: 
 
-turbo build /path/to/turbo.me
+    turbo build /path/to/turbo.me
