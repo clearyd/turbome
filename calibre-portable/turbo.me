@@ -1,0 +1,84 @@
+#
+# calibre turbo.me file
+# https://github.com/turboapps/turbome/tree/master/calibre
+#
+# Licensed under the Apache License, Version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+
+requires privilege:admin
+
+meta title="calibre"
+meta namespace="calibre"
+meta name="calibre"
+
+###################################
+# Pull dependency images
+###################################
+
+layer clean
+using python:3.4.1
+using turbo/turboscript-tools:2016.3.17
+
+###################################
+# Download and install
+###################################
+
+# Install "requests" module for python
+cmd "pip install requests --quiet"
+
+cmd mkdir c:\Workspace
+workdir c:\Workspace
+
+# Get last version tag
+#batch
+# echo import sys > getRelease.py
+# echo import requests >> getRelease.py
+# echo import re >> getRelease.py
+# echo host = 'https://calibre-ebook.com/download_windows/' >> getRelease.py
+# echo headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'} >> getRelease.py
+# echo r = requests.get(host , headers=headers, timeout=10) >> getRelease.py
+# echo print(list(re.findall('(http.*?(\d*\.*\d*\.*\d*)-\d*-.msi)', r.text )[0])) >> getRelease.py
+
+# Get version tag and MSI installer URL
+#cmd python getRelease.py
+#var res=last
+
+#cmd "python -c ""print( %res% [0])"""
+#var tag=last
+
+#cmd "python -c ""print( %res% [1])"""
+#var url=last
+
+var url="https://download.calibre-ebook.com/3.34.0/calibre-portable-installer-3.34.0.exe"
+
+# Download Portable Installer
+cmd wget --no-check-certificate -O calibre-portable-installer-3.34.0.exe %url%
+
+# Install
+cmd calibre-portable-installer-3.34.0.exe /quiet
+
+
+###################################
+# Startup File
+###################################
+
+startup file ("@PROGRAMFILESX86@\Calibre Portable\calibre-portable.exe")
+
+###################################
+# Environment Variables
+###################################
+
+env path="@PROGRAMFILESX86@\Calibre Portable"
+env pathext=""
+
+###################################
+# Clean up
+###################################
+
+workdir c:\
+
+cmd rmdir c:\Workspace /s /q
+cmd rmdir c:\wget /s /q
+cmd rmdir c:\Python34 /s /q
+
+meta tag=tag
